@@ -42,7 +42,7 @@ muf <- function(ca, k, MAP){
       O <- function(gs){
         px <- pxf2(w, gs)
         integrand <- function(gs)(h^2*VPD^2*((LAI*((2*ca)/gs+(2*Km)/gs+(ca^2*gs+gs*Km^2+Km*Rd+ca*(2*gs*Km+Rd-Vcmax)+2*cp*Vcmax+Km*Vcmax)^2/(ca^2*gs^2+gs^2*Km^2+(Rd-Vcmax)^2+2*ca*gs*(gs*Km+Rd-Vcmax)+2*gs*(2*cp*Vcmax+Km*(Rd+Vcmax)))^(3/2)+(-3*ca^2*gs-3*gs*Km^2-2*ca*(3*gs*Km+Rd-Vcmax)-2*(2*cp*Vcmax+Km*(Rd+Vcmax)))/(gs*sqrt(ca^2*gs^2+gs^2*Km^2+(Rd-Vcmax)^2+2*ca*gs*(gs*Km+Rd-Vcmax)+2*gs*(2*cp*Vcmax+Km*(Rd+Vcmax))))))/(h^2*VPD^2)-(2*(-1+c)*c*exp((-(px/d))^c)*h3*(-(px/d))^c*(w+w0-w*w0)^(2*b))/(h2^2*kmax^2*(px*(w+w0-w*w0)^b+c*(-(px/d))^c*(pe-px*(w+w0-w*w0)^b))^2)+(2*c^2*exp((-(px/d))^c)*h3*(-(px/d))^(2*c)*(w+w0-w*w0)^(2*b))/(h2^2*kmax^2*(px*(w+w0-w*w0)^b+c*(-(px/d))^c*(pe-px*(w+w0-w*w0)^b))^2)+(4*c*h3*(-(px/d))^c*(w+w0-w*w0)^b)/(gs*h*h2*kmax*VPD*(px*(w+w0-w*w0)^b+c*(-(px/d))^c*(pe-px*(w+w0-w*w0)^b)))+(2*(LAI*(-(ca/gs)-Km/gs+(ca^2*gs+gs*Km^2+Km*Rd+ca*(2*gs*Km+Rd-Vcmax)+2*cp*Vcmax+Km*Vcmax)/(gs*sqrt(ca^2*gs^2+gs^2*Km^2+(Rd-Vcmax)^2+2*ca*gs*(gs*Km+Rd-Vcmax)+2*gs*(2*cp*Vcmax+Km*(Rd+Vcmax)))))-(2*c*h*h3*(-(px/d))^c*VPD*(w+w0-w*w0)^b)/(gs*h2*kmax*(px*(w+w0-w*w0)^b+c*(-(px/d))^c*(pe-px*(w+w0-w*w0)^b)))))/(h^2*VPD^2)))/(gs*(-((2*gamma*((-1+exp(-(-(px/d))^c))*h3+mu-(1/2)*LAI*((-ca)*gs-gs*Km+Rd-Vcmax+sqrt(ca^2*gs^2+gs^2*Km^2+(Rd-Vcmax)^2+2*ca*gs*(gs*Km+Rd-Vcmax)+2*gs*(2*cp*Vcmax+Km*(Rd+Vcmax))))))/gs^2)-(2*b*(-1+c)*c*h*h3*pe*(-(px/d))^c*VPD*(-1+w0)*(w+w0-w*w0)^(-1+b))/(gs*h2*kmax*(px*(w+w0-w*w0)^b+c*(-(px/d))^c*(pe-px*(w+w0-w*w0)^b))^2)+(2*b*c^2*h*h3*pe*(-(px/d))^(2*c)*VPD*(-1+w0)*(w+w0-w*w0)^(-1+b))/(gs*h2*kmax*(px*(w+w0-w*w0)^b+c*(-(px/d))^c*(pe-px*(w+w0-w*w0)^b))^2)-(2*b*c^2*h*h3*pe*(-(px/d))^(2*c)*VPD*(-1+w0)*(w+w0-w*w0)^b)/(gs*h2*kmax*(w*(-1+w0)-w0)*(px*(w+w0-w*w0)^b+c*(-(px/d))^c*(pe-px*(w+w0-w*w0)^b))^2)-(2*b*c*h3*pe*(-(px/d))^c*(-1+w0))/(exp((-(px/d))^c)*(gs^2*(w+w0-w*w0)*(px*(w+w0-w*w0)^b+c*(-(px/d))^c*(pe-px*(w+w0-w*w0)^b))))+(-gamma+k/(gs*h*VPD))*(-((LAI*(ca+Km-(ca^2*gs+gs*Km^2+Km*Rd+ca*(2*gs*Km+Rd-Vcmax)+2*cp*Vcmax+Km*Vcmax)/sqrt(ca^2*gs^2+gs^2*Km^2+(Rd-Vcmax)^2+2*ca*gs*(gs*Km+Rd-Vcmax)+2*gs*(2*cp*Vcmax+Km*(Rd+Vcmax)))))/gs)-(2*c*h*h3*(-(px/d))^c*VPD*(w+w0-w*w0)^b)/(gs*h2*kmax*(px*(w+w0-w*w0)^b+c*(-(px/d))^c*(pe-px*(w+w0-w*w0)^b))))))
-        res <- integrate(integrand, 0, gs, rel.tol=.Machine$double.eps^0.9)$value-(w-w0)
+        res <- integrate(integrand, 0, gs, rel.tol=.Machine$double.eps^0.75)$value-(w-w0)
         return(res^2)
       }
       u <- optimize(O, c(0,1), tol=.Machine$double.eps)$minimum
@@ -110,7 +110,7 @@ gswf1 <- function(w,
     O <- function(gs){
       px <- pxf2(w, gs)
       integrand <- function(gs)(h^2*VPD^2*((LAI*((2*ca)/gs+(2*Km)/gs+(ca^2*gs+gs*Km^2+Km*Rd+ca*(2*gs*Km+Rd-Vcmax)+2*cp*Vcmax+Km*Vcmax)^2/(ca^2*gs^2+gs^2*Km^2+(Rd-Vcmax)^2+2*ca*gs*(gs*Km+Rd-Vcmax)+2*gs*(2*cp*Vcmax+Km*(Rd+Vcmax)))^(3/2)+(-3*ca^2*gs-3*gs*Km^2-2*ca*(3*gs*Km+Rd-Vcmax)-2*(2*cp*Vcmax+Km*(Rd+Vcmax)))/(gs*sqrt(ca^2*gs^2+gs^2*Km^2+(Rd-Vcmax)^2+2*ca*gs*(gs*Km+Rd-Vcmax)+2*gs*(2*cp*Vcmax+Km*(Rd+Vcmax))))))/(h^2*VPD^2)-(2*(-1+c)*c*exp((-(px/d))^c)*h3*(-(px/d))^c*(w+w0-w*w0)^(2*b))/(h2^2*kmax^2*(px*(w+w0-w*w0)^b+c*(-(px/d))^c*(pe-px*(w+w0-w*w0)^b))^2)+(2*c^2*exp((-(px/d))^c)*h3*(-(px/d))^(2*c)*(w+w0-w*w0)^(2*b))/(h2^2*kmax^2*(px*(w+w0-w*w0)^b+c*(-(px/d))^c*(pe-px*(w+w0-w*w0)^b))^2)+(4*c*h3*(-(px/d))^c*(w+w0-w*w0)^b)/(gs*h*h2*kmax*VPD*(px*(w+w0-w*w0)^b+c*(-(px/d))^c*(pe-px*(w+w0-w*w0)^b)))+(2*(LAI*(-(ca/gs)-Km/gs+(ca^2*gs+gs*Km^2+Km*Rd+ca*(2*gs*Km+Rd-Vcmax)+2*cp*Vcmax+Km*Vcmax)/(gs*sqrt(ca^2*gs^2+gs^2*Km^2+(Rd-Vcmax)^2+2*ca*gs*(gs*Km+Rd-Vcmax)+2*gs*(2*cp*Vcmax+Km*(Rd+Vcmax)))))-(2*c*h*h3*(-(px/d))^c*VPD*(w+w0-w*w0)^b)/(gs*h2*kmax*(px*(w+w0-w*w0)^b+c*(-(px/d))^c*(pe-px*(w+w0-w*w0)^b)))))/(h^2*VPD^2)))/(gs*(-((2*gamma*((-1+exp(-(-(px/d))^c))*h3+mu-(1/2)*LAI*((-ca)*gs-gs*Km+Rd-Vcmax+sqrt(ca^2*gs^2+gs^2*Km^2+(Rd-Vcmax)^2+2*ca*gs*(gs*Km+Rd-Vcmax)+2*gs*(2*cp*Vcmax+Km*(Rd+Vcmax))))))/gs^2)-(2*b*(-1+c)*c*h*h3*pe*(-(px/d))^c*VPD*(-1+w0)*(w+w0-w*w0)^(-1+b))/(gs*h2*kmax*(px*(w+w0-w*w0)^b+c*(-(px/d))^c*(pe-px*(w+w0-w*w0)^b))^2)+(2*b*c^2*h*h3*pe*(-(px/d))^(2*c)*VPD*(-1+w0)*(w+w0-w*w0)^(-1+b))/(gs*h2*kmax*(px*(w+w0-w*w0)^b+c*(-(px/d))^c*(pe-px*(w+w0-w*w0)^b))^2)-(2*b*c^2*h*h3*pe*(-(px/d))^(2*c)*VPD*(-1+w0)*(w+w0-w*w0)^b)/(gs*h2*kmax*(w*(-1+w0)-w0)*(px*(w+w0-w*w0)^b+c*(-(px/d))^c*(pe-px*(w+w0-w*w0)^b))^2)-(2*b*c*h3*pe*(-(px/d))^c*(-1+w0))/(exp((-(px/d))^c)*(gs^2*(w+w0-w*w0)*(px*(w+w0-w*w0)^b+c*(-(px/d))^c*(pe-px*(w+w0-w*w0)^b))))+(-gamma+k/(gs*h*VPD))*(-((LAI*(ca+Km-(ca^2*gs+gs*Km^2+Km*Rd+ca*(2*gs*Km+Rd-Vcmax)+2*cp*Vcmax+Km*Vcmax)/sqrt(ca^2*gs^2+gs^2*Km^2+(Rd-Vcmax)^2+2*ca*gs*(gs*Km+Rd-Vcmax)+2*gs*(2*cp*Vcmax+Km*(Rd+Vcmax)))))/gs)-(2*c*h*h3*(-(px/d))^c*VPD*(w+w0-w*w0)^b)/(gs*h2*kmax*(px*(w+w0-w*w0)^b+c*(-(px/d))^c*(pe-px*(w+w0-w*w0)^b))))))
-      res <- integrate(integrand, 0, gs, rel.tol=.Machine$double.eps^0.89)$value-(w-w0)
+      res <- integrate(integrand, 0, gs)$value-(w-w0)
       return(res^2)
     }
     u <- optimize(O, c(0,1), tol=.Machine$double.eps)$minimum
@@ -123,4 +123,12 @@ gswf1 <- function(w,
 }
 gswf2 <- Vectorize(gswf1)
 
-gswf2(w0+0.032)
+# Figure
+windows(8, 6)
+par(mgp = c(2.2, 1, 0), xaxs = "i", yaxs = "i", lwd = 2, mar=c(4, 4, 2.5, 4), mfrow=c(1,1))
+curve(gswf2, w0+0.032, 1, type="l",
+     xlab = expression(italic(w)~"(%)"),
+     ylab = expression(italic(g[s])~(mol~m^-2~s^-1)),
+     xlim = c(0, 1), ylim = c(0, 1),
+     cex.lab = 1.3)
+abline(v=w0)

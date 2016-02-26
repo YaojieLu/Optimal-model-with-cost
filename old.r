@@ -1,14 +1,14 @@
 
 ca1 <- 400
-k1 <- 0.1
-MAP1 <- 3650
-
+k1 <- 0.025
+MAP1 <- 365
+w0 <- 0.5
 # Functions
 ## mu
 muf <- function(ca, k, MAP){
   
   muf1 <- function(mu,
-                   pe=-1.58, w0=2/3, b=4.38, kmax=5, c=5.71, d=10.05, h3=10,
+                   pe=-1.58, b=4.38, kmax=5, c=5.71, d=10.05, h3=10,
                    a=1.6, LAI=1, nZ=0.5, p=43200, l=1.8e-5, h=l*a*LAI/nZ*p, VPD=0.02,
                    h2=h/1000,
                    Vcmax=50, cp=30, Km=703, Rd=1, 
@@ -81,7 +81,7 @@ mu2 <- mu1$minimum
 gsw1 <- function(w,
                  ca=ca1, k=k1, MAP=MAP1,
                  mu=mu2,
-                 pe=-1.58, w0=2/3, b=4.38, kmax=5, c=5.71, d=10.05, h3=10,
+                 pe=-1.58, b=4.38, kmax=5, c=5.71, d=10.05, h3=10,
                  a=1.6, LAI=1, nZ=0.5, p=43200, l=1.8e-5, h=l*a*LAI/nZ*p, VPD=0.02,
                  h2=h/1000,
                  Vcmax=50, cp=30, Km=703, Rd=1, 
@@ -161,7 +161,7 @@ namef1 <- function(ca, k, MAP){
 namef1(ca1,k1,MAP1)
 
 # Plots
-gsw <- read.csv("gs(w).csv")
+gsw <- read.csv("gs(w) for ca=400k=0.1MAP=3650.csv")
 windows(8, 6)
 par(mgp = c(2, 1, 0), xaxs = "i", yaxs = "i", lwd = 2, mar=c(3.5, 4, 2, 2))
 plot(gsw$w, gsw$gs, type="l",
