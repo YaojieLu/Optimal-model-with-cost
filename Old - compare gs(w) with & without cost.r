@@ -8,7 +8,7 @@ w0 <- 0.5
 muf <- function(ca, k, MAP){
   
   muf1 <- function(mu,
-                   pe=-1.58, b=4.38, kmax=5, c=5.71, d=10.05, h3=10,
+                   pe=-1.58*10^-3, b=4.38, kmax=5, c=5.71, d=10.05, h3=10,
                    a=1.6, LAI=1, nZ=0.5, p=43200, l=1.8e-5, h=l*a*LAI/nZ*p, VPD=0.02,
                    h2=h/1000,
                    Vcmax=50, cp=30, Km=703, Rd=1, 
@@ -81,7 +81,7 @@ mu2 <- mu1$minimum
 gsw1 <- function(w,
                  ca=ca1, k=k1, MAP=MAP1,
                  mu=mu2,
-                 pe=-1.58, b=4.38, kmax=5, c=5.71, d=10.05, h3=10,
+                 pe=-1.58*10^-3, b=4.38, kmax=5, c=5.71, d=10.05, h3=10,
                  a=1.6, LAI=1, nZ=0.5, p=43200, l=1.8e-5, h=l*a*LAI/nZ*p, VPD=0.02,
                  h2=h/1000,
                  Vcmax=50, cp=30, Km=703, Rd=1, 
