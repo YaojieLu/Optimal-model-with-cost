@@ -196,7 +196,6 @@ muf <- function(ca, k, MAP,
     }
     
     resf <- function(x)optimize(f1, c(x, 1e9), tol=.Machine$double.eps)
-    
     estint <- function(p1, p2, p3){
       est <- try(resf(p1), silent=TRUE)
       i <- 0
@@ -222,6 +221,9 @@ muf <- function(ca, k, MAP,
   return(res)
 }
 # disf is used to identify whether the integrand function has any discontinuity between 0 and ESS(w). It returns the lowest singularity 
+####################################################################
+###### Important!!! may fail with different parameter values  ######
+####################################################################
 disf <- function(w, ca, k, MAP,
                  Vcmax=50, cp=30, Km=703, Rd=1, LAI=1,
                  a=1.6, nZ=0.5, p=43200, l=1.8e-5, h=l*a*LAI/nZ*p, VPD=0.02,
@@ -254,12 +256,15 @@ disf <- function(w, ca, k, MAP,
   }
   
   x0 <- ESSf1(w, ca)
-  x1 <- optimize(f1, c(0, x0), tol=.Machine$double.eps)$minimum
-  x2 <- optimize(f1, c(0, x1), tol=.Machine$double.eps, maximum=T)$maximum
-  x3 <- try(uniroot(f1, c(x2/1e5, x2), tol=.Machine$double.eps)$root, silent=T)
+  xa1 <- optimize(f1, c(0, x0), tol=.Machine$double.eps)$minimum
+  xa2 <- optimize(f1, c(0, xa1), tol=.Machine$double.eps, maximum=T)$maximum
+  xa3 <- try(uniroot(f1, c(xa2/1e5, xa2), tol=.Machine$double.eps)$root, silent=T)
+  resa <- ifelse(is.numeric(xa3), xa3, xa2)
+  xb1 <- optimize(f1, c(0, x0), tol=.Machine$double.eps, maximum=T)$maximum
+  xb2 <- try(uniroot(f1, c(xb1/1e5, xb1), tol=.Machine$double.eps)$root, silent=T)
+  resb <- ifelse(is.numeric(xb2), xb2, xb1)
+  res <- c(resa, resb)
   #browser()
-  res <- ifelse(x3<x2, x3, x2)
-  #res <- ifelse(x3<x0, x3, x0)
   return(res)
 }
 # optimal stomatal behaviour function
@@ -296,8 +301,19 @@ optf1 <- function(w, ca, k, MAP,
     return(res^2)
   }
   res1 <- try(optimize(O, c(0, ESSf1(w, ca)), tol=.Machine$double.eps)$minimum, silent=T)
-  res <- ifelse(is.numeric(res1), res1, optimize(O, c(0, disf(w, ca, k, MAP)), tol=.Machine$double.eps)$minimum)
-  #browser()
+  #res <- ifelse(is.numeric(res1), res1, optimize(O, c(0, disf(w, ca, k, MAP)), tol=.Machine$double.eps)$minimum)
+  if(is.numeric(res1)){
+    res <- res1
+  }else{
+    resa <- try(optimize(O, c(0, disf(w, ca, k, MAP)[1]), tol=.Machine$double.eps), silent=T)
+    resb <- try(optimize(O, c(0, disf(w, ca, k, MAP)[2]), tol=.Machine$double.eps), silent=T)
+    #browser()
+    if(is.numeric(try(c(resa$objective, resb$objective), silent=T))){
+      res <- ifelse(resa$objective<resb$objective, resa$minimum, resb$minimum)
+    }else{
+      res <- ifelse(is.numeric(try(resa$minimum, silent=T)), resa$minimum, resb$minimum)
+    }
+  }
   return(res)
 }
 # optimal B(w)

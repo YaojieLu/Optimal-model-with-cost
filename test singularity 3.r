@@ -2,12 +2,11 @@ options(digits=20)
 source("test (functions).r")
 
 ca1 <- 400
-k1 <- 0.025
+k1 <- 0.1
 MAP1 <- 365
 
 w0opt <- w0optf(ca1)
 mu <- muf(ca1, k1, MAP1)
-
 
 # gsmax
 gsmaxf1 <- function(w,
@@ -68,4 +67,5 @@ f2 <- Vectorize(f1)
 
 # result
 curve(f2, 0, ESSf2(wtest))
-curve(f2, 0.01, 0.2)
+curve(f2, 0.02, 0.08)
+optimize(f2, c(0, ESSf1(wtest, 400)), tol=.Machine$double.eps, maximum=T)

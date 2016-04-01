@@ -7,7 +7,6 @@ w0opt <- w0optf(ca1)
 w0ESS <- optimize(w0ESSf, c(0.113, 1), ca=ca1, tol=.Machine$double.eps)$minimum
 
 # Figure
-windows(8, 6)
 par(mgp=c(2.2, 1, 0), xaxs="i", yaxs="i", lwd=2, mar=c(4, 4, 2.5, 1), mfrow=c(1,1))
 curve(ESSf2, w0ESS, 1, col="black", type="l",
       xlab=expression(italic(w)),
@@ -25,34 +24,34 @@ k1 <- 0.025
 MAP1 <- 365
 mu <- muf(ca1, k1, MAP1)
 optf2 <- Vectorize(function(w)optf1(w, ca1, k1, MAP1))
-curve(optf2, w0opt, 1, lty=1, col="red", add=T)
+curve(optf2, w0opt, 1, lty=1, col="red")
 ####################################################################
 MAP1 <- 3650
 mu <- muf(ca1, k1, MAP1)
 optf2 <- Vectorize(function(w)optf1(w, ca1, k1, MAP1))
-curve(optf2, w0opt, 1, lty=2, col="red", add=T)
+curve(optf2, w0opt, 1, lty=2, col="red")
 ####################################################################
 k1 <- 0.05
 ####################################################################
 MAP1 <- 365
 mu <- muf(ca1, k1, MAP1)
 optf2 <- Vectorize(function(w)optf1(w, ca1, k1, MAP1))
-curve(optf2, w0opt, 1, lty=1, col="blue", add=T)
+curve(optf2, w0opt, 1, lty=1, col="blue")
 ####################################################################
 MAP1 <- 3650
 mu <- muf(ca1, k1, MAP1)
 optf2 <- Vectorize(function(w)optf1(w, ca1, k1, MAP1))
-curve(optf2, w0opt, 1, lty=2, col="blue", add=T)
+curve(optf2, w0opt, 1, lty=2, col="blue")
 ####################################################################
 k1 <- 0.1
 ####################################################################
 MAP1 <- 365
 mu <- muf(ca1, k1, MAP1)
 optf2 <- Vectorize(function(w)optf1(w, ca1, k1, MAP1))
-curve(optf2, w0opt, 1, lty=1, col="darkgreen", add=T)
+curve(optf2, w0opt, 1, lty=1, col="darkgreen")
 ####################################################################
 MAP1 <- 3650
 mu <- muf(ca1, k1, MAP1)
 optf2 <- Vectorize(function(w)optf1(w, ca1, k1, MAP1))
-curve(optf2, w0opt, 1, lty=2, col="darkgreen", add=T)
+curve(optf2, w0opt, 1, lty=2, col="darkgreen")
 ####################################################################
