@@ -1,5 +1,5 @@
 
-source("Functions.r")
+source("test (functions).r")
 
 ca1 <- 400
 k1 <- 0.025
@@ -18,9 +18,10 @@ PDFf <- function(ca, k, MAP,
   optf2 <- Vectorize(function(w)optf1(w, ca, k, MAP))
   Ev <- function(w){h*VPD*optf2(w)}
   rEv <- function(w){1/Ev(w)}
-  integralrEv <- Vectorize(function(w){integrate(rEv, w, 1)$value})
+  integralrEv <- Vectorize(function(w){integrate(rEv, w, 1, rel.tol=.Machine$double.eps^0.5, subdivisions = 10000)$value})
   fnoc <- function(w){1/Ev(w)*exp(-gamma*w-k*integralrEv(w))}
-  integralfnoc <- integrate(fnoc, w0opt, 1)$value
+  #browser()
+  integralfnoc <- integrate(fnoc, w0opt, 1, rel.tol=.Machine$double.eps^0.5)$value
   c <- 1/integralfnoc
   message(c)
   f1 <- function(w){
