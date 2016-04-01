@@ -1,13 +1,9 @@
 
-ca1 <- 400
-k1 <- 0.1
-MAP1 <- 3650
-
 # function for w0opt (where optimal stomatal behaviour stops transpiring)
 w0optf <- function(ca,
-                Vcmax=50, cp=30, Km=703, Rd=1, LAI=1,
-                a=1.6, nZ=0.5, p=43200, l=1.8e-5, h=l*a*LAI/nZ*p, VPD=0.02,
-                pe=-1.58*10^-3, b=4.38, h2=h/1000, xkmax=5, c=5.71, d=10.05, h3=10){
+                   Vcmax=50, cp=30, Km=703, Rd=1, LAI=1,
+                   a=1.6, nZ=0.5, p=43200, l=1.8e-5, h=l*a*LAI/nZ*p, VPD=0.02,
+                   pe=-1.58*10^-3, b=4.38, h2=h/1000, xkmax=5, c=5.71, d=10.05, h3=10){
   
   # photosynthesis rate function
   Af <- function(gs){LAI*1/2*(Vcmax+(Km+ca)*gs-Rd-sqrt(((ca-Km)*gs+Rd-Vcmax)^2+4*gs*((ca*gs+Rd)*Km+cp*Vcmax)))}
@@ -55,16 +51,12 @@ w0optf <- function(ca,
   res <- optimize(Bmaxf, c(0.1, 1), tol=.Machine$double.eps)$minimum
   return(res)
 }
-####################################################################
-# w0opt
-w0opt <- w0optf(ca1)
-####################################################################
 # ESS stomatal behaviour function
 ESSf1 <- function(w,
-                 ca,
-                 Vcmax=50, cp=30, Km=703, Rd=1, LAI=1,
-                 a=1.6, nZ=0.5, p=43200, l=1.8e-5, h=l*a*LAI/nZ*p, VPD=0.02,
-                 pe=-1.58*10^-3, b=4.38, h2=h/1000, xkmax=5, c=5.71, d=10.05, h3=10){
+                  ca,
+                  Vcmax=50, cp=30, Km=703, Rd=1, LAI=1,
+                  a=1.6, nZ=0.5, p=43200, l=1.8e-5, h=l*a*LAI/nZ*p, VPD=0.02,
+                  pe=-1.58*10^-3, b=4.38, h2=h/1000, xkmax=5, c=5.71, d=10.05, h3=10){
   # xylem conductance function
   xkf <- function(x)xkmax*exp(-(-x/d)^c)
   # minimum xylem water potential function for given w
@@ -101,6 +93,46 @@ ESSf1 <- function(w,
   return(res)
 }
 ESSf2 <- Vectorize(function(w)ESSf1(w, ca=ca1))
+# ESS B(w)
+ESSBf1 <- function(w, ca, k, MAP,
+                   Vcmax=50, cp=30, Km=703, Rd=1, LAI=1,
+                   a=1.6, nZ=0.5, p=43200, l=1.8e-5, h=l*a*LAI/nZ*p, VPD=0.02,
+                   pe=-1.58*10^-3, b=4.38, h2=h/1000, xkmax=5, c=5.71, d=10.05, h3=10){
+  
+  # photosynthesis rate function
+  Af <- function(gs){LAI*1/2*(Vcmax+(Km+ca)*gs-Rd-sqrt(((ca-Km)*gs+Rd-Vcmax)^2+4*gs*((ca*gs+Rd)*Km+cp*Vcmax)))}
+  # xylem conductance function
+  xkf <- function(x)xkmax*exp(-(-x/d)^c)
+  # minimum xylem water potential function for given w
+  pxminf <- function(w){
+    ps <- pe*w^(-b)
+    f1 <- function(x)-(ps-x)*h2*xkf(x)
+    res <- optimize(f1, c(-20,0), tol=.Machine$double.eps)$minimum
+    return(res)
+  }
+  # xylem water potential function
+  pxf <- function(w, gs){
+    ps <- pe*w^(-b)
+    pxmin <- pxminf(w)
+    f1 <- function(x)((ps-x)*h2*xkf(x)-h*VPD*gs)^2
+    res <- optimize(f1, c(pxmin, ps), tol=.Machine$double.eps)$minimum
+    return(res)
+  }
+  # PLC cost function
+  mf <- function(w, gs){
+    px <- pxf(w, gs)
+    xk <- xkf(px)
+    PLC <- 1-xk/xkmax
+    res <- h3*PLC
+    return(res)
+  }
+  # net photosynthesis rate function
+  Bf <- function(w, gs)Af(gs)-mf(w, gs)
+  f1 <- function(w, ca)Bf(w, ESSf1(w, ca))
+  res <- f1(w, ca)
+  return(res)
+}
+
 # function for w0ESS (where ESS stomatal behaviour stops transpiring)
 w0ESSf <- function(w0, ca,
                    gs=0,
@@ -110,10 +142,6 @@ w0ESSf <- function(w0, ca,
   res <- ((-c)*h*h2*h3*(ca+Km)*kmax*LAI*pe*(ca*(Rd-Vcmax)+2*cp*Vcmax+Km*(Rd+Vcmax))*VPD*w0^b*(-(pe/(w0^b*d)))^c-c^2*h^2*h3^2*(ca*(Rd-Vcmax)+2*cp*Vcmax+Km*(Rd+Vcmax))*VPD^2*w0^(2*b)*(-(pe/(w0^b*d)))^(2*c)-sqrt(c*h*h3*(cp+Km)*Vcmax*(Km*Rd+ca*(Rd-Vcmax)+cp*Vcmax)*VPD*w0^b*(-(pe/(w0^b*d)))^c*(h2*(ca+Km)*kmax*LAI*pe+c*h*h3*VPD*w0^b*(-(pe/(w0^b*d)))^c)*(h2*(ca+Km)*kmax*LAI*pe+2*c*h*h3*VPD*w0^b*(-(pe/(w0^b*d)))^c)^2))/(w0^b*(-(pe/(w0^b*d)))^c)/(c*h*h3*(ca+Km)^2*VPD*(h2*(ca+Km)*kmax*LAI*pe+c*h*h3*VPD*w0^b*(-(pe/(w0^b*d)))^c))
   return(abs(res))
 }
-####################################################################
-# w0ESS
-w0ESS <- optimize(w0ESSf, c(0.113, 1), ca=ca1, tol=.Machine$double.eps)$minimum
-####################################################################
 # function for identifying mu
 muf <- function(ca, k, MAP,
                 Vcmax=50, cp=30, Km=703, Rd=1, LAI=1,
@@ -193,10 +221,6 @@ muf <- function(ca, k, MAP,
   res <- muf()$minimum
   return(res)
 }
-####################################################################
-# mu
-mu <- muf(ca1, k1, MAP1)
-####################################################################
 # optimal stomatal behaviour function
 optf1 <- function(w, ca, k, MAP,
                   Vcmax=50, cp=30, Km=703, Rd=1, LAI=1,
@@ -244,22 +268,48 @@ optf1 <- function(w, ca, k, MAP,
     return(p1+p2*i/(10^p3))
   }
   
-  intlower1 <- estint(ESSf1(w, ca), -1, 3)
+  intlower1 <- estint(ESSf1(w, ca), -1, 1)
   intlower2 <- estint(intlower1+1e-1, -1, 2)
   intlower3 <- estint(intlower2+1e-2, -1, 3)
   res <- resf(min(ESSf1(w, ca), intlower3))$minimum
   return(res)
 }
-optf2 <- Vectorize(function(w)optf1(w, ca1, k1, MAP1))
-# Figure
-windows(8, 6)
-par(mgp=c(2.2, 1, 0), xaxs="i", yaxs="i", lwd=2, mar=c(4, 4, 2.5, 1), mfrow=c(1,1))
-curve(ESSf2, w0ESS, 1, col="blue", type="l",
-      xlab=expression(italic(w)),
-      ylab=expression(italic(g[s])~(mol~m^-2~s^-1)),
-      xlim=c(0, 1), ylim=c(0, 1.3),
-      cex.lab=1.3)
-abline(v=w0ESS, col="blue")
-curve(optf2, w0opt, 1, col="red", add=T)
-abline(v=w0opt, col="red")
-legend("topright", c("ESS", "Optimal"), lty=c(1, 1), col=c("blue", "red"))
+# optimal B(w)
+optBf1 <- function(w, ca, k, MAP,
+                   Vcmax=50, cp=30, Km=703, Rd=1, LAI=1,
+                   a=1.6, nZ=0.5, p=43200, l=1.8e-5, h=l*a*LAI/nZ*p, VPD=0.02,
+                   pe=-1.58*10^-3, b=4.38, h2=h/1000, xkmax=5, c=5.71, d=10.05, h3=10){
+  
+  # photosynthesis rate function
+  Af <- function(gs){LAI*1/2*(Vcmax+(Km+ca)*gs-Rd-sqrt(((ca-Km)*gs+Rd-Vcmax)^2+4*gs*((ca*gs+Rd)*Km+cp*Vcmax)))}
+  # xylem conductance function
+  xkf <- function(x)xkmax*exp(-(-x/d)^c)
+  # minimum xylem water potential function for given w
+  pxminf <- function(w){
+    ps <- pe*w^(-b)
+    f1 <- function(x)-(ps-x)*h2*xkf(x)
+    res <- optimize(f1, c(-20,0), tol=.Machine$double.eps)$minimum
+    return(res)
+  }
+  # xylem water potential function
+  pxf <- function(w, gs){
+    ps <- pe*w^(-b)
+    pxmin <- pxminf(w)
+    f1 <- function(x)((ps-x)*h2*xkf(x)-h*VPD*gs)^2
+    res <- optimize(f1, c(pxmin, ps), tol=.Machine$double.eps)$minimum
+    return(res)
+  }
+  # PLC cost function
+  mf <- function(w, gs){
+    px <- pxf(w, gs)
+    xk <- xkf(px)
+    PLC <- 1-xk/xkmax
+    res <- h3*PLC
+    return(res)
+  }
+  # net photosynthesis rate function
+  Bf <- function(w, gs)Af(gs)-mf(w, gs)
+  f1 <- function(w)Bf(w, optf1(w, ca, k, MAP))
+  res <- f1(w)
+  return(res)
+}

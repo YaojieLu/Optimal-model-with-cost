@@ -1,5 +1,5 @@
 
-source("test (functions).r")
+source("Functions.r")
 
 ca1 <- 400
 k1 <- 0.025

@@ -221,6 +221,47 @@ muf <- function(ca, k, MAP,
   res <- muf()$minimum
   return(res)
 }
+# disf is used to identify whether the integrand function has any discontinuity between 0 and ESS(w). It returns the lowest singularity 
+disf <- function(w, ca, k, MAP,
+                 Vcmax=50, cp=30, Km=703, Rd=1, LAI=1,
+                 a=1.6, nZ=0.5, p=43200, l=1.8e-5, h=l*a*LAI/nZ*p, VPD=0.02,
+                 pe=-1.58*10^-3, b=4.38, h2=h/1000, xkmax=5, c=5.71, d=10.05, h3=10,
+                 MDP=MAP/365, gamma=1/(MDP/k/1000)*nZ){
+  
+  # xylem conductance function
+  xkf <- function(x)xkmax*exp(-(-x/d)^c)
+  # minimum xylem water potential function for given w
+  pxminf <- function(w){
+    ps <- pe*w^(-b)
+    f1 <- function(x)-((ps-x)*h2*xkf(x))
+    res <- optimize(f1, c(-20,0), tol=.Machine$double.eps)$minimum
+    return(res)
+  }
+  # xylem water potential function
+  pxf <- function(w, gs){
+    ps <- pe*w^(-b)
+    pxmin <- pxminf(w)
+    f1 <- function(x)((ps-x)*h2*xkf(x)-h*VPD*gs)^2
+    res <- optimize(f1, c(pxmin, ps), tol=.Machine$double.eps)$minimum
+    return(res)
+  }
+  
+  f1 <- function(gs){
+    w <- w
+    px <- pxf(w, gs)
+    res <- -((2*gamma*((-1+exp(-(-(px/d))^c))*h3+mu-(1/2)*LAI*((-ca)*gs-gs*Km+Rd-Vcmax+sqrt(ca^2*gs^2+gs^2*Km^2+(Rd-Vcmax)^2+2*ca*gs*(gs*Km+Rd-Vcmax)+2*gs*(2*cp*Vcmax+Km*(Rd+Vcmax))))))/gs^2)+(2*b*(-1+c)*c*h*h3*pe*(-(px/d))^c*VPD*w^(-1+b))/(gs*h2*xkmax*(px*w^b+c*(-(px/d))^c*(pe-px*w^b))^2)-(4*b*c^2*h*h3*pe*(-(px/d))^(2*c)*VPD*w^(-1+b))/(gs*h2*xkmax*(px*w^b+c*(-(px/d))^c*(pe-px*w^b))^2)+(2*b*c*h3*pe*(-(px/d))^c)/(exp((-(px/d))^c)*(gs^2*w*(px*w^b+c*(-(px/d))^c*(pe-px*w^b))))+(-gamma+k/(gs*h*VPD))*(-((LAI*(ca+Km-(ca^2*gs+gs*Km^2+Km*Rd+ca*(2*gs*Km+Rd-Vcmax)+2*cp*Vcmax+Km*Vcmax)/sqrt(ca^2*gs^2+gs^2*Km^2+(Rd-Vcmax)^2+2*ca*gs*(gs*Km+Rd-Vcmax)+2*gs*(2*cp*Vcmax+Km*(Rd+Vcmax)))))/gs)-(2*c*h*h3*(-(px/d))^c*VPD*w^b)/(gs*h2*xkmax*(px*w^b+c*(-(px/d))^c*(pe-px*w^b))))
+    return(res)
+  }
+  
+  x0 <- ESSf1(w, ca)
+  x1 <- optimize(f1, c(0, x0), tol=.Machine$double.eps)$minimum
+  x2 <- optimize(f1, c(0, x1), tol=.Machine$double.eps, maximum=T)$maximum
+  x3 <- try(uniroot(f1, c(x2/1e5, x2), tol=.Machine$double.eps)$root, silent=T)
+  #browser()
+  res <- ifelse(x3<x2, x3, x2)
+  #res <- ifelse(x3<x0, x3, x0)
+  return(res)
+}
 # optimal stomatal behaviour function
 optf1 <- function(w, ca, k, MAP,
                   Vcmax=50, cp=30, Km=703, Rd=1, LAI=1,
@@ -254,24 +295,9 @@ optf1 <- function(w, ca, k, MAP,
     res <- integrate(integrand, 0, gs, rel.tol=.Machine$double.eps^0.5)$value-(w-w0opt)
     return(res^2)
   }
-  resf <- function(x)optimize(O, c(0, x), tol=.Machine$double.eps)
-  estint <- function(p1, p2, p3){
-    est <- try(resf(p1), silent=TRUE)
-    i <- 0
-    if(inherits(est, "try-error")){
-      while(inherits(est, "try-error")){
-        i <- i + 1
-        est <- try(resf(p1+p2*i/(10^p3)), silent=TRUE)
-        message(p1+p2*i/(10^p3))
-      }
-    }
-    return(p1+p2*i/(10^p3))
-  }
-  
-  intlower1 <- estint(ESSf1(w, ca), -1, 1)
-  intlower2 <- estint(intlower1+1e-1, -1, 2)
-  intlower3 <- estint(intlower2+1e-2, -1, 3)
-  res <- resf(min(ESSf1(w, ca), intlower3))$minimum
+  res1 <- try(optimize(O, c(0, ESSf1(w, ca)), tol=.Machine$double.eps)$minimum, silent=T)
+  res <- ifelse(is.numeric(res1), res1, optimize(O, c(0, disf(w, ca, k, MAP)), tol=.Machine$double.eps)$minimum)
+  #browser()
   return(res)
 }
 # optimal B(w)
