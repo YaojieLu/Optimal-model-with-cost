@@ -12,9 +12,11 @@ windows(8, 6)
 par(mgp=c(2.2, 1, 0), xaxs="i", yaxs="i", lwd=2, mar=c(4, 4, 2.5, 1), mfrow=c(1,1))
 curve(ESSBf2, w0ESS, 1, col="black", type="l",
       xlab=expression(italic(w)),
-      ylab=expression(italic(B)~(mu*mol~m^-2~s^-1)),
-      xlim=c(0, 1), ylim=c(0, 20),
+      ylab=expression(italic(B[opt])~(mu*mol~m^-2~s^-1)),
+      xlim=c(0, 1), ylim=c(-20, 20),
       cex.lab=1.3)
+abline(h=0, col="red")
+text(x=0.51 , y=2, labels=expression(italic(B==0)), col="red", cex=1.3)
 #abline(v=w0ESS, col="black")
 #abline(v=w0opt, col="red")
 #legend("topright", c("ESS", "Optimal"), lty=c(1, 1), col=c("black", "red"))
