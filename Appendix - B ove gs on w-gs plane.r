@@ -56,9 +56,11 @@ Af <- function(gs, ca=400, Vcmax=50, cp=30, Km=703, Rd=1, LAI=1)LAI*1/2*(Vcmax+(
 Bf <- function(w, gs)Af(gs)-mf(w, gs)
 # B/gs
 Bgsf <- function(w, gs)Bf(w, gs)/gs
-forgsf1 <- function(gs)Bgsf(0.2, gs)
+forgsf1 <- function(gs)Bgsf(0.15, gs)
 forwf1 <- function(w)Bgsf(w, 0.01)
 
-# Figures
-Bf1 <- Vectorize(function(gs)Bf(1, gs))
-curve(Bf1, 0.9, 1.1)
+# Figure
+windows(8, 6)
+par(mgp = c(2.2, 1, 0), xaxs = "i", yaxs = "i", lwd = 2, mar=c(4, 4, 2.5, 1), mfrow=c(1,1))
+forgsf2 <- Vectorize(forgsf1)
+curve(forgsf2, 0.002181545, gsmaxf(0.15))
