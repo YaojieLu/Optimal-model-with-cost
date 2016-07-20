@@ -67,21 +67,24 @@ dgsdwf <- function(w, y, parms, mu, wL){
 }
 
 
-# Boundary conditions
-gsBCf <- function(w, parms, mu, ca){
+# Boundary condition at w=1
+gs1f <- function(w, parms, mu, ca){
   with(as.list(c(w, parms, mu)), {
     
     h <- l*a*LAI/nZ*p
     h2=l*LAI/nZ*p/1000
     
     gsmax <- gsmaxf(w)
-
+    
     f1 <- function(gs){
       px <- pxf(w, gs)
       res <- (1/2)*gs*h*VPD*((-gs)*LAI*(ca+Km-(ca^2*gs+gs*Km^2+Km*Rd+ca*(2*gs*Km+Rd-Vcmax)+2*cp*Vcmax+Km*Vcmax)/sqrt((ca*gs-gs*Km+Rd-Vcmax)^2+4*gs*(ca*gs*Km+Km*Rd+cp*Vcmax)))+2*((-1+exp(-(-(px/d))^c))*h3+mu-(1/2)*LAI*((-ca)*gs-gs*Km+Rd-Vcmax+sqrt((ca*gs-gs*Km+Rd-Vcmax)^2+4*gs*(ca*gs*Km+Km*Rd+cp*Vcmax))))-(2*c*gs*h*h3*(-(px/d))^c*VPD*w^b)/(h2*kxmax*(px*w^b+c*(-(px/d))^c*(pe-px*w^b))))
       return(res^2)
     }
-    res <- optimize(f1, c(0.05, gsmax), tol=.Machine$double.eps)
+    #f2 <- Vectorize(f1)
+    #browser()
+    #curve(f2, 0.02, gsmax*0.99)
+    res <- optimize(f1, c(0.02, gsmax*0.99), tol=.Machine$double.eps)
     return(res)
   })
 }
@@ -98,7 +101,6 @@ muf <- function(mu, wL){
 
 # gs(w)
 gswf <- function(w, mu, wL){
-  gswL <- gsBCf(wL, parms, mu, ca)
-  res <- ode(y=c(gs=gswL$minimum), times=c(wL, w), func=dgsdwf, parms=parms, mu=mu, wL=wL)[2, 2]
+  res <- ode(y=c(gs=1e-5), times=c(wL+1e-5, w), func=dgsdwf, parms=parms, mu=mu, wL=wL)[2, 2]
   return(res)
 }
