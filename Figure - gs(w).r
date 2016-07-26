@@ -105,7 +105,7 @@ gswf <- function(w, mu, wL){
 }
 
 # Result
-wL <- 0.20224
+wL <- 0.202234724271675
 
 mul <- 1
 ca <- 400

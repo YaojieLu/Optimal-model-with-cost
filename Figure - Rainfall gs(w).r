@@ -1,4 +1,7 @@
 
+options(digits=2)
+library(deSolve)
+
 # psf(w)
 psf <- function(w, pe=-1.58*10^-3, b=4.38)pe*w^(-b)
 
@@ -46,7 +49,7 @@ PLCwgsf <- function(w, gs){
 }
 
 # mf(w, gs)
-mf <- function(w, gs, h3=15)h3*PLCwgsf(w, gs)
+mf <- function(w, gs, h3=10)h3*PLCwgsf(w, gs)
 
 # B(w, gs)
 Bf <- function(w, gs, ca)Af(gs, ca)-mf(w, gs)
@@ -84,28 +87,6 @@ gsBCf <- function(w, parms, mu, ca){
   })
 }
 
-# For check
-f1 <- function(w, parms, mu, ca){
-  with(as.list(c(w, parms, mu)), {
-    
-    h <- l*a*LAI/nZ*p
-    h2=l*LAI/nZ*p/1000
-    
-    f1 <- function(gs){
-      px <- pxf(w, gs)
-      res <- (1/2)*gs*h*VPD*((-gs)*LAI*(ca+Km-(ca^2*gs+gs*Km^2+Km*Rd+ca*(2*gs*Km+Rd-Vcmax)+2*cp*Vcmax+Km*Vcmax)/sqrt((ca*gs-gs*Km+Rd-Vcmax)^2+4*gs*(ca*gs*Km+Km*Rd+cp*Vcmax)))+2*((-1+exp(-(-(px/d))^c))*h3+mu-(1/2)*LAI*((-ca)*gs-gs*Km+Rd-Vcmax+sqrt((ca*gs-gs*Km+Rd-Vcmax)^2+4*gs*(ca*gs*Km+Km*Rd+cp*Vcmax))))-(2*c*gs*h*h3*(-(px/d))^c*VPD*w^b)/(h2*kxmax*(px*w^b+c*(-(px/d))^c*(pe-px*w^b))))
-      return(res^2)
-    }
-    
-    gsmax <- gsmaxf(w)
-    res <- optimize(f1, c(gsmax*0.1, gsmax), tol=.Machine$double.eps)
-    f2 <- Vectorize(f1)
-    browser()
-    curve(f2, 0, gsmax*0.99)
-    return(res)
-  })
-}
-
 # optimize mu
 muf <- function(mu, wL){
   gswL <- gsBCf(wL, parms, mu, ca)
@@ -123,65 +104,50 @@ gswf <- function(w, mu, wL){
   return(res)
 }
 
-# integralfnoc of PDF
-integralfnocf <- function(wL, parms){
-  with(as.list(c(wL, parms)), {
-    
-    h <- l*a*LAI/nZ*p
-    gamma <- 1/((MAP/365/k)/1000)*nZ
-    
-    Ef <- function(w){h*VPD*gswf1(w)}
-    rEf <- function(w){1/Ef(w)}
-    integralrEf <- Vectorize(function(w){integrate(rEf, wL, w, rel.tol=.Machine$double.eps^0.25)$value})
-    fnoc <- function(w){1/Ef(w)*exp(-gamma*(w-wL)/(1-wL)+k*integralrEf(w)*1/(1-wL))*1/(1-wL)}
-    
-    res <- integrate(fnoc, wL, 1, rel.tol=.Machine$double.eps^0.25)
-    return(res)
-  })
-}
+# Result
+mul <- 1
+ca <- 400
+parms <- c(LAI=1,
+           Vcmax=50, cp=30, Km=703, Rd=1,
+           a=1.6, nZ=0.5, p=43200, l=1.8e-5, VPD=0.02,
+           pe=-1.58*10^-3, b=4.38, c=2.64, d=3.54, kxmax=5, h3=10)
 
-# cPDF
-cPDFf <- function(integralfnoc, wL, parms){
-  with(as.list(c(integralfnoc, wL, parms)), {
-    
-    h <- l*a*LAI/nZ*p
-    gamma <- 1/((MAP/365/k)/1000)*nZ
-    
-    Ef <- function(w){h*VPD*gswf1(w)}
-    rEf <- function(w){1/Ef(w)}
-    res <- 1/(integralfnoc+1/k)
-    #res <- 1/(integralfnoc+1/k*exp(-k/(1-wL)*integrate(rEf, wL, 1, rel.tol=.Machine$double.eps^0.25)$value))
-    return(res)
-  })
-}
+# Scenario 1
+k <- 0.05
+MAP <- 500
+wL <- 0.195321908017932
+mu <- optimize(muf, c(-20, 0), tol=.Machine$double.eps, wL=wL)
+gswf1 <- Vectorize(function(w)gswf(w, mu$minimum, wL)*mul)
 
-# PDF of w
-PDFf <- function(w, wL, cPDF, parms){
-  with(as.list(c(wL, cPDF, parms)), {
-    
-    h <- l*a*LAI/nZ*p
-    gamma <- 1/((MAP/365/k)/1000)*nZ
-    
-    Ef <- function(w){h*VPD*gswf1(w)}
-    rEf <- function(w){1/Ef(w)}
-    integralrEf <- Vectorize(function(w){integrate(rEf, wL, w, rel.tol=.Machine$double.eps^0.25)$value})
-    
-    res <- cPDF/Ef(w)*exp(-gamma*(w-wL)/(1-wL)+k*integralrEf(w)*1/(1-wL))*1/(1-wL)
-    return(res)
-  })
-}
+# Figure
+windows(8, 6)
+par(mgp=c(2, 1, 0), xaxs="i", yaxs="i", lwd=2, mar=c(3, 4, 2, 1))
+curve(gswf1, wL, 1,
+      xlab=expression(italic(w)), 
+      ylab=expression(italic(g[s])~(mol~m^-2~s^-1)),
+      #main=expression("MAP=1000 mm"),
+      main=expression(italic(k==0.05)~day^-1),
+      xlim=c(0, 1), ylim=c(0, 0.2),
+      cex.lab=1.3)
 
-# Average B
-averBf <- function(wL, cPDF, parms){
-  with(as.list(c(wL, cPDF, parms)), {
-    
-    h <- l*a*LAI/nZ*p
-    gamma <- 1/((MAP/365/k)/1000)*nZ
-    
-    Bf1 <- Vectorize(function(w)Bf(w, gswf1(w), ca))
-    f1 <- function(w)Bf1(w)*PDFf(w, wL, cPDF, parms)
-    
-    res <- integrate(f1, wL, 1, rel.tol=.Machine$double.eps^0.25)
-    return(res)
-  })
-}
+# Scenario 2
+k <- 0.05
+MAP <- 1000
+wL <- 0.202234724271675
+mu <- optimize(muf, c(-20, 0), tol=.Machine$double.eps, wL=wL)
+gswf1 <- Vectorize(function(w)gswf(w, mu$minimum, wL)*mul)
+
+# Figure
+curve(gswf1, wL, 1, add=T, col="blue")
+
+# Scenario 3
+k <- 0.05
+MAP <- 2000
+wL <- 0.206570338208484
+mu <- optimize(muf, c(-20, 0), tol=.Machine$double.eps, wL=wL)
+gswf1 <- Vectorize(function(w)gswf(w, mu$minimum, wL)*mul)
+
+# Figure
+curve(gswf1, wL, 1, add=T, col="red")
+#legend("topleft", title=expression(italic(k)), c("0.025", "0.05", "0.1"), lty=c(1, 1, 1), col=c("black", "blue", "red"))
+legend("topleft", title="MAP", c("500", "1000", "2000"), lty=c(1, 1, 1), col=c("black", "blue", "red"))
