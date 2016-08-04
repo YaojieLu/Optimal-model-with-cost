@@ -34,9 +34,7 @@ pxf <- function(w, gs, a=1.6, nZ=0.5, p=43200, l=1.8e-5, LAI=1, h=l*a*LAI/nZ*p, 
 }
 
 # Af(gs, ca)
-Af <- function(gs, ca, Vcmax=50, cp=30, Km=703, Rd=1, LAI=1){
-  LAI*1/2*(Vcmax+(Km+ca)*gs-Rd-((Vcmax)^2+2*Vcmax*(Km-ca+2*cp)*gs+((ca+Km)*gs+Rd)^2-2*Rd*Vcmax)^(1/2))
-}
+Af <- function(gs, ca, Vcmax=50, cp=30, Km=703, Rd=1, LAI=1)LAI*1/2*(Vcmax+(Km+ca)*gs-Rd-((Vcmax)^2+2*Vcmax*(Km-ca+2*cp)*gs+((ca+Km)*gs+Rd)^2-2*Rd*Vcmax)^(1/2))
 
 # PLCwgsf(w, gs)
 PLCwgsf <- function(w, gs){
@@ -99,10 +97,10 @@ averBf <- function(wL, parms, mul){
     
     # integralfnoc of PDF
     integralfnocf <- function(wL){
-      Ef <- function(w){h*VPD*gswf1(w)}
-      rEf <- function(w){1/Ef(w)}
-      integralrEf <- Vectorize(function(w){integrate(rEf, wL, w, rel.tol=.Machine$double.eps^0.25)$value})
-      fnoc <- function(w){1/Ef(w)*exp(-gamma*(w-wL)/(1-wL)+k*integralrEf(w)*1/(1-wL))*1/(1-wL)}
+      Ef <- function(w)h*VPD*gswf1(w)
+      rEf <- function(w)1/Ef(w)
+      integralrEf <- Vectorize(function(w)integrate(rEf, wL, w, rel.tol=.Machine$double.eps^0.25)$value)
+      fnoc <- function(w)1/Ef(w)*exp(-gamma*(w-wL)/(1-wL)+k*1/(1-wL)*integralrEf(w))*1/(1-wL)
       
       res <- integrate(fnoc, wL, 1, rel.tol=.Machine$double.eps^0.25)
       return(res)
@@ -110,11 +108,11 @@ averBf <- function(wL, parms, mul){
     
     # PDF of w
     PDFf <- function(w, wL, cPDF){
-      Ef <- function(w){h*VPD*gswf1(w)}
-      rEf <- function(w){1/Ef(w)}
-      integralrEf <- Vectorize(function(w){integrate(rEf, wL, w, rel.tol=.Machine$double.eps^0.25)$value})
+      Ef <- function(w)h*VPD*gswf1(w)
+      rEf <- function(w)1/Ef(w)
+      integralrEf <- Vectorize(function(w)integrate(rEf, wL, w, rel.tol=.Machine$double.eps^0.25)$value)
       
-      res <- cPDF/Ef(w)*exp(-gamma*(w-wL)/(1-wL)+k*integralrEf(w)*1/(1-wL))*1/(1-wL)
+      res <- cPDF/Ef(w)*exp(-gamma*(w-wL)/(1-wL)+k*1/(1-wL)*integralrEf(w))*1/(1-wL)
       return(res)
     }
     
@@ -126,7 +124,7 @@ averBf <- function(wL, parms, mul){
       res <- integrate(f1, wL, 1, rel.tol=.Machine$double.eps^0.25)
       return(res)
     }
-
+    
     mu <- optimize(muf, c(-20, 0), tol=.Machine$double.eps, wL=wL)$minimum
     gswf1 <- Vectorize(function(w)gswf(w, mu, wL)*mul)
     integralfnoc <- integralfnocf(wL)$value
@@ -246,8 +244,8 @@ CFf <- function(pars,
   
   Ef <- function(w)h*VPD*gswf(w)
   rEf <- function(w)1/Ef(w)
-  integralrEf <- Vectorize(function(w){integrate(rEf, wL, w, rel.tol=.Machine$double.eps^0.25)$value})
-  fnoc <- function(w){1/Ef(w)*exp(-gamma*(w-wL)/(1-wL)+k*integralrEf(w)*1/(1-wL))*1/(1-wL)}
+  integralrEf <- Vectorize(function(w)integrate(rEf, wL, w, rel.tol=.Machine$double.eps^0.25)$value)
+  fnoc <- function(w)1/Ef(w)*exp(-gamma*(w-wL)/(1-wL)+k*1/(1-wL)*integralrEf(w))*1/(1-wL)
   
   f <- function(w)cPDF*fnoc(w)
   Bf1 <- function(w)Bf(w, gswf(w), ca)
@@ -258,5 +256,3 @@ CFf <- function(pars,
   averB <- integrate(fB, wL, 1, rel.tol=.Machine$double.eps^0.25)
   return(averB$value)
 }
-
-CFf_wrapper <- function(pars)CFf(pars, wL, gswL)
