@@ -3,10 +3,10 @@
 options(digits=20)
 library(deSolve)
 library(optimx)
-source("Functions.r")
+source("Functions 1.r")
 
 ca <- 400
-k <- 0.025
+k <- 0.05
 MAP <- 1000
 h3 <- 10
 c <- 2.64

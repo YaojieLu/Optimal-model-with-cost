@@ -3,7 +3,7 @@
 options(digits=20)
 library(deSolve)
 library(optimx)
-source("Functions.r")
+source("Functions 1.r")
 
 ca <- 400
 k <- 0.05
@@ -19,6 +19,6 @@ gswLf <- function(gswL){
   return(res$value)
 }
 
-wL <- 0.655380401202348
-gswL <- optimize(gswLf, c(0.001, 0.02), tol=.Machine$double.eps, maximum=T)
+wL <- 0.24
+gswL <- optimize(gswLf, c(0, 0.02), tol=.Machine$double.eps, maximum=T)
 gswL

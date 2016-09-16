@@ -3,7 +3,7 @@
 options(digits=20)
 library(deSolve)
 library(optimx)
-source("Functions.r")
+source("Functions 1.r")
 
 # Parameters
 ca <- 400
@@ -14,13 +14,14 @@ c <- 2.64
 d <- 3.54
 
 # Inputs
-wL <- 0.655380401202348
-gswL <- 0.00167081284390288
+wL <- 0.24
+gswL <- 0.0094749006994713589
 
 # Optimization
 int <- c(0.07, 4, 0.08, 0.5)
 #CFf(int, wL, gswL)
 pars <- optimx(int, CFf, itnmax=5000, method="BFGS", control=list(maximize=T), wL=wL, gswL=gswL)
+pars
 gswf <- function(w){abs(pars$p1)*(w-wL)^pars$p2+abs(pars$p3)*(w-wL)^pars$p4+gswL}
 
 # Figure

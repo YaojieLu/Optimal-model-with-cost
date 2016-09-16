@@ -1,9 +1,8 @@
-
 ######################### No cost #########################
 
 options(digits=20)
 library(deSolve)
-source("No cost/Functions.r")
+source("No cost/tf.r")
 
 ca <- 400
 k <- 0.05
@@ -20,9 +19,9 @@ f <- Vectorize(function(w)gswf(w, muopt$root))
 windows(8, 6)
 par(mgp = c(2, 1, 0), xaxs = "i", yaxs = "i", lwd = 2, mar=c(3.5, 4, 1, 2))
 curve(f, 0, 1,
-     xlab = expression(italic(w)~"(%)"), 
-     ylab = expression(italic(g[s])~(mol~m^-2~s^-1)),
-     xlim = c(0, 1), ylim = c(0, 0.4),
-     cex.lab = 1.3,
-     col = "red"
+      xlab = expression(italic(w)~"(%)"), 
+      ylab = expression(italic(g[s])~(mol~m^-2~s^-1)),
+      xlim = c(0, 1), ylim = c(0, 0.4),
+      cex.lab = 1.3,
+      col = "red"
 )
