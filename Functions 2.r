@@ -19,6 +19,18 @@ averBf <- function(wL, parms){
       res <- uniroot(f1, c(0, gsmax), tol=.Machine$double.eps)
       return(res)
     }
+    ## test
+    #testf <- function(w, mu, wL){
+    #  f1 <- function(gs){
+    #    px <- pxf(w, gs)
+    #    res <- (-gs)*LAI*(ca+Km-(ca^2*gs+gs*Km^2+Km*Rd+ca*(2*gs*Km+Rd-Vcmax)+2*cp*Vcmax+Km*Vcmax)/sqrt((ca*gs-gs*Km+Rd-Vcmax)^2+4*gs*(ca*gs*Km+Km*Rd+cp*Vcmax)))+2*((-1+exp(-(-(px/d))^c))*h3+mu-(1/2)*LAI*((-ca)*gs-gs*Km+Rd-Vcmax+sqrt((ca*gs-gs*Km+Rd-Vcmax)^2+4*gs*(ca*gs*Km+Km*Rd+cp*Vcmax))))-(2*c*gs*h*h3*(-(px/d))^c*VPD*w^b)/(h2*kxmax*(px*w^b+c*(-(px/d))^c*(pe-px*w^b)))
+    #    return(res)
+    #  }
+    #  browser()
+    #  gsmax <- gsmaxf(w)
+    #  res <- uniroot(f1, c(0, gsmax), tol=.Machine$double.eps)
+    #  return(res)
+    #}
     
     # dgs/dw
     dgsdwf <- function(w, y, parms, mu, wL){
@@ -47,10 +59,10 @@ averBf <- function(wL, parms){
     integralfnocf <- function(wL){
       Ef <- function(w)h*VPD*gswf1(w)
       rEf <- function(w)1/Ef(w)
-      integralrEf <- Vectorize(function(w)integrate(rEf, wL, w, rel.tol=.Machine$double.eps^0.4)$value)
+      integralrEf <- Vectorize(function(w)integrate(rEf, wL, w, rel.tol=.Machine$double.eps^0.3)$value)
       fnoc <- function(w)1/Ef(w)*exp(-gamma*w+k*integralrEf(w))
       
-      res <- integrate(fnoc, wL, 1, rel.tol=.Machine$double.eps^0.4)
+      res <- integrate(fnoc, wL, 1, rel.tol=.Machine$double.eps^0.3)
       return(res)
     }
     
@@ -58,7 +70,7 @@ averBf <- function(wL, parms){
     PDFf <- function(w, wL, cPDF){
       Ef <- function(w)h*VPD*gswf1(w)
       rEf <- function(w)1/Ef(w)
-      integralrEf <- Vectorize(function(w)integrate(rEf, wL, w, rel.tol=.Machine$double.eps^0.4)$value)
+      integralrEf <- Vectorize(function(w)integrate(rEf, wL, w, rel.tol=.Machine$double.eps^0.3)$value)
       
       res <- cPDF/Ef(w)*exp(-gamma*w+k*integralrEf(w))
       return(res)
@@ -69,14 +81,15 @@ averBf <- function(wL, parms){
       Bf1 <- Vectorize(function(w)Bf(w, gswf1(w)))
       f1 <- function(w)Bf1(w)*PDFf(w, wL, cPDF)
       
-      res <- integrate(f1, wL, 1, rel.tol=.Machine$double.eps^0.4)
+      res <- integrate(f1, wL, 1, rel.tol=.Machine$double.eps^0.3)
       return(res)
     }
-    browser()
+    #browser()
+    #testf(wL, 0, wL)
     gswL <- gsBCf(wL, 0, wL)$root
     mu <- uniroot(muf, c(-20, 0), tol=.Machine$double.eps, wL=wL)
     gswf1 <- Vectorize(function(w)gswf(w, mu$root, wL))
-    curve(gswf1, wL, 1)
+    #curve(gswf1, wL, wL+1e-5)
     integralfnoc <- integralfnocf(wL)
     cPDF <- 1/(integralfnoc$value+1/k*exp(-gamma*wL))
     averB <- averBf(wL, cPDF)

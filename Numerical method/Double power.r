@@ -14,11 +14,11 @@ c <- 2.64
 d <- 3.54
 
 # Inputs
-wL <- 0.24
-gswL <- 0.0094749006994713589
+wL <- 0.192332092487738
+gswL <- 0.0117595242933216
 
 # Optimization
-int <- c(0.07, 4, 0.08, 0.5)
+int <- c(0.035766007131693173, 3.9996951736974116, 0.13886788949095452, 0.58394777754069094)
 #CFf(int, wL, gswL)
 pars <- optimx(int, CFf, itnmax=5000, method="BFGS", control=list(maximize=T), wL=wL, gswL=gswL)
 pars
