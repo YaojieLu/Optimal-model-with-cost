@@ -89,7 +89,7 @@ averBf <- function(wL, parms){
     gswL <- gsBCf(wL, 0, wL)$root
     mu <- uniroot(muf, c(-20, 0), tol=.Machine$double.eps, wL=wL)
     gswf1 <- Vectorize(function(w)gswf(w, mu$root, wL))
-    #curve(gswf1, wL, wL+1e-5)
+    #curve(gswf1, wL, 1, xlim=c(0, 1), ylim=c(0, 0.2))
     integralfnoc <- integralfnocf(wL)
     cPDF <- 1/(integralfnoc$value+1/k*exp(-gamma*wL))
     averB <- averBf(wL, cPDF)
