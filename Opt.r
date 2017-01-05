@@ -11,9 +11,9 @@ parms <- c(LAI=1,
            a=1.6, nZ=0.5, p=43200, l=1.8e-5, VPD=0.02,
            pe=-1.58*10^-3, b=4.38, kxmax=5, c=2.64, d=3.54)
 
-k <- 0.025
-MAP <- 3000
+k <- 0.05
+MAP <- 1000
 h3 <- 10
 
 #averBf(0.187957156405029, parms)
-optwL <- optimize(wLf, c(0.173, 0.19), maximum=T)
+optwL <- optimize(wLf, c(0.17, 0.21), maximum=T)

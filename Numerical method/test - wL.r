@@ -25,5 +25,4 @@ wLf <- function(wL){
   return(res$objective)
 }
 
-#wL <- 0.199779892528234
 wL <- optimize(wLf, c(0.14, 1), tol=.Machine$double.eps)
