@@ -1,5 +1,5 @@
 
-# Maximum averB
+# averB given wL
 averBf <- function(wL, parms){
   with(as.list(c(wL, parms)), {
     h <- l*a*LAI/nZ*p
@@ -7,30 +7,33 @@ averBf <- function(wL, parms){
     gamma <- 1/((MAP/365/k)/1000)*nZ
     
     # Functions
-    # Boundary conditions
-    gsBCf <- function(w, mu, wL){
+    # Boundary conditions at wL
+    gsBCwLf <- function(wL){
       f1 <- function(gs){
+        w <- wL
         px <- pxf(w, gs)
-        res <- (-gs)*LAI*(ca+Km-(ca^2*gs+gs*Km^2+Km*Rd+ca*(2*gs*Km+Rd-Vcmax)+2*cp*Vcmax+Km*Vcmax)/sqrt((ca*gs-gs*Km+Rd-Vcmax)^2+4*gs*(ca*gs*Km+Km*Rd+cp*Vcmax)))+2*((-1+exp(-(-(px/d))^c))*h3+mu-(1/2)*LAI*((-ca)*gs-gs*Km+Rd-Vcmax+sqrt((ca*gs-gs*Km+Rd-Vcmax)^2+4*gs*(ca*gs*Km+Km*Rd+cp*Vcmax))))-(2*c*gs*h*h3*(-(px/d))^c*VPD*w^b)/(h2*kxmax*(px*w^b+c*(-(px/d))^c*(pe-px*w^b)))
+        res <- (1/2)*(2*(-1+exp(-(-(px/d))^c))*h3+LAI*(gs*(ca+Km)-Rd+Vcmax-sqrt((ca*gs-gs*Km+Rd-Vcmax)^2+4*gs*(ca*gs*Km+Km*Rd+cp*Vcmax)))-2*gs*((1/2)*LAI*(ca+Km+((-ca^2)*gs-gs*Km^2-Km*Rd-2*cp*Vcmax-Km*Vcmax+ca*(-2*gs*Km-Rd+Vcmax))/sqrt((ca*gs-gs*Km+Rd-Vcmax)^2+4*gs*(ca*gs*Km+Km*Rd+cp*Vcmax)))+(c*h*h3*(-(px/d))^c*VPD*w^b)/(h2*kxmax*(px*w^b+c*(-(px/d))^c*(pe-px*w^b)))))
         return(res)
       }
       
-      gsmax <- gsmaxf(w)
+      gsmax <- gsmaxf(wL)
       res <- uniroot(f1, c(0, gsmax), tol=.Machine$double.eps)
       return(res)
     }
-    ## test
-    #testf <- function(w, mu, wL){
-    #  f1 <- function(gs){
-    #    px <- pxf(w, gs)
-    #    res <- (-gs)*LAI*(ca+Km-(ca^2*gs+gs*Km^2+Km*Rd+ca*(2*gs*Km+Rd-Vcmax)+2*cp*Vcmax+Km*Vcmax)/sqrt((ca*gs-gs*Km+Rd-Vcmax)^2+4*gs*(ca*gs*Km+Km*Rd+cp*Vcmax)))+2*((-1+exp(-(-(px/d))^c))*h3+mu-(1/2)*LAI*((-ca)*gs-gs*Km+Rd-Vcmax+sqrt((ca*gs-gs*Km+Rd-Vcmax)^2+4*gs*(ca*gs*Km+Km*Rd+cp*Vcmax))))-(2*c*gs*h*h3*(-(px/d))^c*VPD*w^b)/(h2*kxmax*(px*w^b+c*(-(px/d))^c*(pe-px*w^b)))
-    #    return(res)
-    #  }
-    #  browser()
-    #  gsmax <- gsmaxf(w)
-    #  res <- uniroot(f1, c(0, gsmax), tol=.Machine$double.eps)
-    #  return(res)
-    #}
+    
+    # Boundary conditions at 1
+    gsBC1f <- function(mu, wL){
+      f1 <- function(gs){
+        w <- 1
+        px <- pxf(w, gs)
+        res <- (1/2)*(2*(-1+exp(-(-(px/d))^c))*h3+2*mu+LAI*(gs*(ca+Km)-Rd+Vcmax-sqrt((ca*gs-gs*Km+Rd-Vcmax)^2+4*gs*(ca*gs*Km+Km*Rd+cp*Vcmax)))-2*gs*((1/2)*LAI*(ca+Km+((-ca^2)*gs-gs*Km^2-Km*Rd-2*cp*Vcmax-Km*Vcmax+ca*(-2*gs*Km-Rd+Vcmax))/sqrt((ca*gs-gs*Km+Rd-Vcmax)^2+4*gs*(ca*gs*Km+Km*Rd+cp*Vcmax)))+(c*h*h3*(-(px/d))^c*VPD*w^b)/(h2*kxmax*(px*w^b+c*(-(px/d))^c*(pe-px*w^b)))))
+        return(res)
+      }
+      
+      gsmax <- gsmaxf(1)
+      res <- uniroot(f1, c(0, gsmax), tol=.Machine$double.eps)
+      return(res)
+    }
     
     # dgs/dw
     dgsdwf <- function(w, y, parms, mu, wL){
@@ -43,8 +46,8 @@ averBf <- function(wL, parms){
     
     # Optimize mu
     muf <- function(mu, wL){
-      gs11 <- as.numeric(ode(y=c(gs=gswL), times=c(wL, 1), func=dgsdwf, parms=NULL, mu=mu, wL=wL, maxsteps=100000)[2, 2])#
-      gs12 <- gsBCf(1, mu, wL)$root
+      gs11 <- as.numeric(ode(y=c(gs=gswL), times=c(wL, 1), func=dgsdwf, parms=NULL, mu=mu, wL=wL, maxsteps=100000)[2, 2])
+      gs12 <- gsBC1f(mu, wL)$root
       res <- gs11-gs12
       return(res)
     }
@@ -84,12 +87,17 @@ averBf <- function(wL, parms){
       res <- integrate(f1, wL, 1, rel.tol=.Machine$double.eps^0.3)
       return(res)
     }
-    #browser()
-    #testf(wL, 0, wL)
-    gswL <- gsBCf(wL, 0, wL)$root
+
+    browser()
+    gswL <- gsBCwLf(wL)$root
+    df <- Vectorize(function(mu)dgsdwf(wL, y=c(gs=gswL), parms=NULL, mu, wL))
+    muf1 <- Vectorize(function(mu)muf(mu, wL))
     mu <- uniroot(muf, c(-20, 0), tol=.Machine$double.eps, wL=wL)
     gswf1 <- Vectorize(function(w)gswf(w, mu$root, wL))
-    #curve(gswf1, wL, 1, xlim=c(0, 1), ylim=c(0, 0.2))
+    #Bf1 <- Vectorize(function(w)Bf(w, gswf1(w)))
+    #curve(Bf1, wL, 1, xlim=c(0, 1))
+    #pxf1 <- Vectorize(function(w)pxf(w, gswf1(w)))
+    #curve(pxf1, wL, 1, xlim=c(0, 1))
     integralfnoc <- integralfnocf(wL)
     cPDF <- 1/(integralfnoc$value+1/k*exp(-gamma*wL))
     averB <- averBf(wL, cPDF)

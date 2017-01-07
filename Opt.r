@@ -15,5 +15,5 @@ k <- 0.05
 MAP <- 1000
 h3 <- 10
 
-#averBf(0.187957156405029, parms)
-optwL <- optimize(wLf, c(0.17, 0.21), maximum=T)
+averBf(0.187923801472611, parms)
+#optwL <- optimize(wLf, c(0.17, 0.21), maximum=T)
