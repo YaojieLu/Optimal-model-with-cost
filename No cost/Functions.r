@@ -15,13 +15,30 @@ dgsdwf <- function(w, y, parms, mu){
   })
 }
 
+# Boundary condition at w=wL
+gsBCwLf <- function(w, parms){
+  with(as.list(c(w, parms)), {
+    h <- l*a*LAI/nZ*p
+    
+    f1 <- function(gs){
+      res <- (LAI*(ca*gs*(Rd-Vcmax)+gs*(2*cp*Vcmax+Km*(Rd+Vcmax))+(Rd-Vcmax)*(Rd-Vcmax+sqrt(ca^2*gs^2+gs^2*Km^2+(Rd-Vcmax)^2+2*ca*gs*(gs*Km+Rd-Vcmax)+2*gs*(2*cp*Vcmax+Km*(Rd+Vcmax))))))/(2*sqrt((ca*gs-gs*Km+Rd-Vcmax)^2+4*gs*(ca*gs*Km+Km*Rd+cp*Vcmax)))
+      return(res)
+    }
+    
+    res <- uniroot(f1, c(0, 1), tol=.Machine$double.eps)
+    return(res)
+  })
+}
+
 # Boundary condition at w=1
-gsBCf <- function(w, parms, mu){
-  with(as.list(c(w, parms, mu)), {
+gsBC1f <- function(parms, mu){
+  with(as.list(c(parms, mu)), {
+    
+    w <- 1
     h <- l*a*LAI/nZ*p
 
     f1 <- function(gs){
-      res <- ca*gs*LAI+gs*Km*LAI+2*mu-LAI*Rd+LAI*Vcmax-LAI*sqrt((ca*gs-gs*Km+Rd-Vcmax)^2+4*gs*(ca*gs*Km+Km*Rd+cp*Vcmax))-gs*LAI*(ca+Km-(ca^2*gs+gs*Km^2+Km*Rd+ca*(2*gs*Km+Rd-Vcmax)+2*cp*Vcmax+Km*Vcmax)/sqrt((ca*gs-gs*Km+Rd-Vcmax)^2+4*gs*(ca*gs*Km+Km*Rd+cp*Vcmax)))
+      res <- (1/2)*(-2*mu+gs*LAI*(ca+Km+((-ca^2)*gs-gs*Km^2-Km*Rd-2*cp*Vcmax-Km*Vcmax+ca*(-2*gs*Km-Rd+Vcmax))/sqrt((ca*gs-gs*Km+Rd-Vcmax)^2+4*gs*(ca*gs*Km+Km*Rd+cp*Vcmax)))+LAI*((-ca)*gs-gs*Km+Rd-Vcmax+sqrt((ca*gs-gs*Km+Rd-Vcmax)^2+4*gs*(ca*gs*Km+Km*Rd+cp*Vcmax))))
       return(res)
     }
     
@@ -32,14 +49,14 @@ gsBCf <- function(w, parms, mu){
 
 # optimize mu
 muf <- function(mu){
-  gs1 <- gsBCf(1, parms, mu)
-  out <- ode(y=c(gs=gs1$root), times=c(1, w0), func=dgsdwf, parms=parms, mu=mu)#, maxsteps=100000, method=c("lsodes")
-  res <- out[2, 2]-gsBCf(w0, parms, 2*mu)$root
+  gs1 <- gsBC1f(parms, mu)
+  out <- ode(y=c(gs=gs1$root), times=c(1, wL), func=dgsdwf, parms=parms, mu=mu)#, maxsteps=100000, method=c("lsodes")
+  res <- out[2, 2]-gswL
   return(res)
 }
 
 # gs(w)
 gswf <- function(w, mu){
-  res <- ode(y=c(gs=w0), times=c(w0, w), func=dgsdwf, parms=parms, mu=mu)[2, 2]
+  res <- ode(y=c(gs=gswL), times=c(wL, w), func=dgsdwf, parms=parms, mu=mu)[2, 2]
   return(res)
 }
